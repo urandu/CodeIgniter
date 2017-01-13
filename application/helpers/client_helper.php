@@ -142,6 +142,99 @@ function create_publication_index()
 
 
 
+function index_page($params)
+{
+    $client = ClientBuilder::create()->build();
+
+
+    $response = $client->index($params);
+    print_r($response);
+
+
+}
+
+function delete_page_index($index)
+{
+    $client = ClientBuilder::create()->build();
+    $params = ['index' => $index];
+    $response = $client->indices()->delete($params);
+    echo("<pre>");
+    print_r($response);
+    echo("</pre>");
+}
+
+
+function search_pages()
+{
+    $client = ClientBuilder::create()->build();
+
+    $params = [
+        'index' => 'pages',
+        'type' => 'pages',
+        'body' => [
+            'query' => [
+                'match' => [
+                    'title' => 'marine status'
+                ]
+            ]
+        ]
+    ];
+
+    $results = $client->search($params);
+    echo("<pre>");
+    print_r($results);
+    echo("</pre>");
+
+}
+
+
+function create_page_index()
+{
+
+    $client = ClientBuilder::create()->build();
+    $params = [
+        'index' => 'pages',
+        'body' => [
+            'settings' => [
+                'number_of_shards' => 2,
+                'number_of_replicas' => 0
+            ],
+            'mappings' => [
+                'main_pages' => [
+                    '_source' => [
+                        'enabled' => true
+                    ],
+                    'properties' => [
+                        'title' => [
+                            'type' => 'string',
+                           
+                        ],'description' => [
+                            'type' => 'string',
+                            
+                        ],'url' => [
+                            'type' => 'string',
+                            
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+// Create the index with mappings and settings now
+    $response = $client->indices()->create($params);
+
+    echo("<pre>");
+    print_r($response);
+    echo("</pre>");
+
+
+
+
+}
+
+
+
 
 function index_geo($params)
 {
