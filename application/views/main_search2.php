@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>jQuery UI Autocomplete - Categories</title>
+    <title>Search</title>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="/resources/demos/style.css">
     <style>
@@ -53,7 +53,23 @@
 
             $( "#search" ).catcomplete({
                 delay: 0,
-                source: data
+                source: function( request, response ) {
+                    $.ajax( {
+                        method: "POST",
+                        url: "http://localhost/elastic-search/index.php/pages/search_pages?term=" + $("#search").val(),
+                        dataType: "jsonp",
+                        data: {
+                            phrase: request.term
+                        },
+                        success: function( data ) {
+                            response( data );
+                        }
+                    } );
+                },
+                minLength: 2,
+                select: function( event, ui ) {
+                    log( "Selected: " + ui.item.value + " aka " + ui.item.id );
+                }
             });
         } );
     </script>

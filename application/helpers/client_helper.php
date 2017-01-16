@@ -41,7 +41,7 @@ function delete_publication_index($index)
 }
 
 
-function search_publications()
+function search_publications($query)
 {
     $client = ClientBuilder::create()->build();
 
@@ -51,16 +51,19 @@ function search_publications()
         'body' => [
             'query' => [
                 'match' => [
-                    'title' => 'marine status'
+
+                    '_all' => [
+                        "query"=>$query
+                    ]
                 ]
             ]
         ]
     ];
 
     $results = $client->search($params);
-    echo("<pre>");
-    print_r($results);
-    echo("</pre>");
+
+    return $results;
+
 
 }
 
@@ -74,10 +77,51 @@ function create_publication_index()
         'body' => [
             'settings' => [
                 'number_of_shards' => 2,
-                'number_of_replicas' => 0
+                'number_of_replicas' => 0,
+                'analysis'=>[
+                    'filter'=>[
+                        'nGram_filter'=>[
+                            'type'=>'nGram',
+                            'min_gram'=>2,
+                            'max_gram'=>20,
+                            'token_chars'=>[
+                                'letter',
+                                'digit',
+                                'punctuation',
+                                'symbol'
+                            ]
+                        ]
+                    ],
+                    'analyzer'=>[
+                        'nGram_analyzer'=>[
+                            'type'=>'custom',
+                            'tokenizer'=>'whitespace',
+                            'filter'=>[
+                                'lowercase',
+                                'asciifolding',
+                                'nGram_filter'
+                            ]
+                        ],
+                        'whitespace_analyzer'=>[
+                            'type'=>'custom',
+                            'tokenizer'=>'whitespace',
+                            'filter'=>[
+                                'lowercase',
+                                'asciifolding'
+                            ]
+
+                        ]
+                    ]
+                ]
             ],
             'mappings' => [
                 'publications' => [
+                    '_all'=>[
+
+                        'analyzer'=>'whitespace_analyzer',
+                        'search_analyzer'=>'whitespace_analyzer',
+                        'analyzer'=>'nGram_analyzer'
+                    ],
                     '_source' => [
                         'enabled' => true
                     ],
@@ -93,33 +137,42 @@ function create_publication_index()
                             
                         ],'division_office' => [
                             'type' => 'string',
+                            'include_in_all'=>false
                             
                         ],'type' => [
                             'type' => 'string',
+                            'include_in_all'=>false
                            
                         ],'date' => [
                             'type' => 'string',
+                            'include_in_all'=>false
                            
                         ],'uneplive_publication' => [
                             'type' => 'string',
+                            'include_in_all'=>false
                            
                         ],'free_keywords' => [
                             'type' => 'string',
+
                            
                         ],'coverage' => [
                             'type' => 'string',
+                            'include_in_all'=>false
                            
                         ],'subject' => [
                             'type' => 'string',
                            
                         ],'language' => [
                             'type' => 'string',
+                            'include_in_all'=>false
                            
                         ],'downloads' => [
                             'type' => 'string',
+                            'include_in_all'=>false
                            
                         ],'thumbnail' => [
                             'type' => 'string',
+                            'include_in_all'=>false
                            
                         ]
                     ]
@@ -162,28 +215,29 @@ function delete_page_index($index)
     print_r($response);
     echo("</pre>");
 }
+//
 
-
-function search_pages()
+function search_pages($query)
 {
     $client = ClientBuilder::create()->build();
 
     $params = [
         'index' => 'pages',
-        'type' => 'pages',
+        'type' => 'main_pages',
         'body' => [
             'query' => [
                 'match' => [
-                    'title' => 'marine status'
+
+                    '_all' => [
+                        "query"=>$query
+                    ]
                 ]
             ]
         ]
     ];
 
     $results = $client->search($params);
-    echo("<pre>");
-    print_r($results);
-    echo("</pre>");
+    return $results;
 
 }
 
@@ -197,30 +251,95 @@ function create_page_index()
         'body' => [
             'settings' => [
                 'number_of_shards' => 2,
-                'number_of_replicas' => 0
+                'number_of_replicas' => 0,
+                'analysis'=>[
+                    'filter'=>[
+                        'nGram_filter'=>[
+                            'type'=>'nGram',
+                            'min_gram'=>2,
+                            'max_gram'=>20,
+                            'token_chars'=>[
+                                'letter',
+                                'digit',
+                                'punctuation',
+                                'symbol'
+                            ]
+                        ]
+                    ],
+                    'analyzer'=>[
+                        'nGram_analyzer'=>[
+                            'type'=>'custom',
+                            'tokenizer'=>'whitespace',
+                            'filter'=>[
+                                'lowercase',
+                                'asciifolding',
+                                'nGram_filter'
+                            ]
+                        ],
+                        'whitespace_analyzer'=>[
+                            'type'=>'custom',
+                            'tokenizer'=>'whitespace',
+                            'filter'=>[
+                                'lowercase',
+                                'asciifolding'
+                            ]
+
+                        ]
+                    ]
+                ]
             ],
             'mappings' => [
                 'main_pages' => [
+                    '_all'=>[
+
+                        'analyzer'=>'whitespace_analyzer',
+                        'search_analyzer'=>'whitespace_analyzer',
+                        'analyzer'=>'nGram_analyzer'
+                    ],
                     '_source' => [
                         'enabled' => true
                     ],
                     'properties' => [
                         'title' => [
                             'type' => 'string',
-                           
+
+
                         ],'description' => [
                             'type' => 'string',
-                            
+
+
                         ],'url' => [
                             'type' => 'string',
-                            
+                            'index'=> 'no',
+                            'include_in_all'=>false
+
                         ]
                     ]
                 ]
             ]
+
         ]
     ];
+/*
+ * "analysis": {
+         "filter": {
 
+         "analyzer": {
+
+            "whitespace_analyzer": {
+               "type": "custom",
+               "tokenizer": "whitespace",
+               "filter": [
+                  "lowercase",
+                  "asciifolding"
+               ]
+            }
+         }
+      }
+   }
+ *
+ *
+ * */
 // Create the index with mappings and settings now
     $response = $client->indices()->create($params);
 

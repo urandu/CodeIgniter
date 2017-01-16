@@ -21,7 +21,7 @@ class Welcome extends CI_Controller {
 	public function index()
 	{
 
-        test();
-		$this->load->view('welcome_message');
+        //test();
+		$this->load->view('main_search2');
 	}
 }

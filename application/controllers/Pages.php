@@ -6,103 +6,95 @@ class Pages extends CI_Controller {
 
     public function index()
     {
+      //  delete_page_index("pages");
+       // create_page_index();
         echo("welcome to pages crawler");
         //$this->load->view('welcome_message');
     }
 
 
 
-    public function search_pages()
+    public function search_pages($query=null)
     {
-        search_pages();
+        if(empty($query))
+        {
+            $query=$this->input->post("phrase");
+        }
+       $results= search_pages($query);
+
+        $publications=search_publications($query);
+        
+        $results_array=array();
+        foreach($results['hits']['hits'] as $result)
+        {
+
+
+            $result['_source']['index']="pages";
+            $result['_source']['label']=$result['_source']['title'];
+            $result['_source']['category']="pages";
+          $results_array[]=$result['_source'];
+
+
+        }
+   foreach($publications['hits']['hits'] as $publication)
+        {
+
+
+            $publication['_source']['index']="pages";
+            $publication['_source']['label']=$publication['_source']['title'];
+            $publication['_source']['category']="pages";
+          $results_array[]=$publication['_source'];
+
+
+        }
+
+        echo(json_encode($results_array));
+
+
+
+
     }
 
     public function fetch_all_pages()
     {
-        //delete_page_index("pages");
+        delete_page_index("pages");
         create_page_index();
        // $xmlData = file_get_contents('http://apps.unep.org/repository/api/v1/views/pages_search_api?limit=20');
 
-       // $pages=json_decode($xmlData);
-       // foreach($pages as $page)
-        //{
+        $pages=file(BASEPATH."../main-pages.dat");
 
-
-            //print($page->title);
-           // die("dd");
-           /* $params = [
-
-                'title' => $page->title,
-                'description' => $page->description,
-                'author' => $page->author,
-                'division_office' => $page->division_office,
-                'type' => $page->type,
-                'date' => $page->date,
-                'uneplive_page' => $page->uneplive_page,
-                'free_keywords' => $page->free_keywords,
-                'coverage' => $page->coverage,
-                'subject' => $page->subject,
-                'language' => $page->language,
-                'downloads' => $page->downloads,
-                'thumbnail' => $page->thumbnail
-            ];*/
-
-
-          /*  $params = [
-                'index' => 'pages',
-                'type' => 'pages',
-
-
-                'body' => [
-                    'title' => $page->title,
-                    'description' => $page->description,
-                    'author' => $page->author,
-                    'division_office' => $page->division_office,
-                    'type' => $page->type,
-                    'date' => $page->date,
-                    'uneplive_page' => $page->uneplive_page,
-                    'free_keywords' => $page->free_keywords,
-                    'coverage' => $page->coverage,
-                    'subject' => $page->subject,
-                    'language' => $page->language,
-                    'downloads' => $page->downloads,
-                    'thumbnail' => $page->thumbnail
-
-
-                ]
-            ];
-
-            index_page($params);
-            unset($params);
-        }*/
-       // create_page_index();
+       // print_r($pages);
+        foreach($pages as $page)
+        {
+            $title=explode(",",$page)[0];
+            $url=explode(",",$page)[1];
 
 
 
-        //delete_page_index("pages");
+              $params = [
+               'index' => 'pages',
+               'type' => 'main_pages',
+
+
+               'body' => [
+                   'title' => $title,
+                   'description' =>"",
+                   'url' => $url
+
+
+               ]
+           ];
+
+           index_page($params);
+           unset($params);
+       }
 
 
 
 
-       /* $curl = curl_init("http://127.0.0.1:9200/customer/external/1?pretty");
-        $data = array(
-            'name' => 'John'
-        );
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_setopt($curl, CURLOPT_HEADER, false);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
-        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query(json_encode($data)));
-
-// Make the REST call, returning the result
-        $response = curl_exec($curl);
-
-        if (!$response) {
-            die("Connection Failure.n");
-        }
-        else
-            print $response;*/
     }
+
+
 
 
 }
